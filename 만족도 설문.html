@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI를 활용한 웹 페이지 교재 전환 교육만족도 설문</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --border: #e5e7eb;
+      --soft: #eff6ff;
+      --danger: #dc2626;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Pretendard, "Noto Sans KR", sans-serif;
+      background: linear-gradient(180deg, #eef5ff 0%, var(--bg) 48%, #ffffff 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .wrap { width: min(960px, 100%); margin: 0 auto; padding: 24px 16px 56px; }
+    header {
+      margin-bottom: 20px; padding: 28px 24px; border-radius: 28px;
+      background: radial-gradient(circle at top left, #dbeafe 0%, #ffffff 46%);
+      box-shadow: var(--shadow); border: 1px solid rgba(37, 99, 235, 0.08);
+    }
+    .badge {
+      display: inline-flex; padding: 6px 12px; border-radius: 999px;
+      background: var(--soft); color: var(--primary-dark); font-size: 13px; font-weight: 700; margin-bottom: 12px;
+    }
+    h1 { margin: 0; font-size: clamp(24px, 5vw, 38px); letter-spacing: -0.04em; line-height: 1.2; }
+    .intro { margin-top: 14px; color: var(--muted); font-size: 16px; }
+    .org { margin-top: 14px; font-weight: 700; color: #374151; }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 24px;
+      padding: 24px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05); margin-top: 18px;
+    }
+    .section-title { margin: 0 0 6px; font-size: 22px; letter-spacing: -0.03em; }
+    .section-desc { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+    .question { padding: 18px 0; border-top: 1px solid var(--border); }
+    .question:first-of-type { border-top: none; padding-top: 6px; }
+    .q-title { margin: 0 0 12px; font-weight: 800; letter-spacing: -0.02em; }
+    .scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .scale label, .check-list label { cursor: pointer; user-select: none; }
+    .scale input, .check-list input { position: absolute; opacity: 0; pointer-events: none; }
+    .scale span {
+      display: flex; min-height: 58px; padding: 8px 6px; align-items: center; justify-content: center;
+      text-align: center; border: 1px solid var(--border); border-radius: 16px; font-size: 13px; font-weight: 700;
+      color: #4b5563; background: #fff; transition: all 0.18s ease;
+    }
+    .scale input:checked + span, .check-list input:checked + span {
+      border-color: var(--primary); background: var(--soft); color: var(--primary-dark);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    .check-list { display: grid; gap: 10px; }
+    .check-list span {
+      display: block; padding: 14px 16px; border: 1px solid var(--border); border-radius: 16px;
+      font-weight: 700; background: #fff; transition: all 0.18s ease;
+    }
+    textarea, input[type="text"] {
+      width: 100%; border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px;
+      font: inherit; outline: none; background: #fff; transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    textarea { min-height: 130px; resize: vertical; }
+    textarea:focus, input[type="text"]:focus {
+      border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .field label { display: block; margin-bottom: 7px; font-size: 14px; color: #4b5563; font-weight: 700; }
+    .actions {
+      position: sticky; bottom: 0; z-index: 20; margin-top: 18px; padding: 14px 0 0;
+      background: linear-gradient(180deg, rgba(244,247,251,0), var(--bg) 35%);
+    }
+    button {
+      width: 100%; border: none; border-radius: 18px; padding: 16px 18px; background: var(--primary);
+      color: #fff; font-size: 17px; font-weight: 900; cursor: pointer;
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.28);
+    }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .notice { margin-top: 12px; padding: 13px 15px; border-radius: 16px; font-size: 14px; display: none; }
+    .notice.success { display: block; background: #ecfdf5; color: #166534; border: 1px solid #bbf7d0; }
+    .notice.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .small { margin-top: 10px; color: var(--muted); font-size: 12px; text-align: center; }
+    .required { color: var(--danger); margin-left: 3px; }
+    @media (max-width: 680px) {
+      .wrap { padding: 14px 12px 42px; }
+      header, .card { border-radius: 22px; padding: 20px; }
+      .meta-grid { grid-template-columns: 1fr; }
+      .scale { grid-template-columns: 1fr; }
+      .scale span { justify-content: flex-start; min-height: 48px; padding: 12px 14px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="badge">교육만족도 설문</div>
+      <h1>「AI를 활용한 웹 페이지 교재 전환」<br />교육만족도 설문</h1>
+      <p class="intro">본 설문은 특별교육 운영 결과 및 향후 유사 과정 개설 여부 검토를 위한 기초자료로 활용됩니다. 응답 내용은 교육 운영 개선 목적 외에는 사용되지 않습니다.</p>
+      <div class="org">우정인재개발원 교육운영과</div>
+    </header>
+
+    <form id="surveyForm">
+      <section class="card">
+        <h2 class="section-title">응답자 정보</h2>
+        <p class="section-desc">선택 입력 항목입니다. 필요하지 않은 경우 비워두셔도 됩니다.</p>
+        <div class="meta-grid">
+          <div class="field"><label for="courseRound">교육 기수/회차</label><input id="courseRound" name="교육 기수/회차" type="text" placeholder="예: 1기, 2회차" /></div>
+          <div class="field"><label for="department">소속/부서</label><input id="department" name="소속/부서" type="text" placeholder="예: ○○우체국, ○○과" /></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">교육만족도</h2>
+        <p class="section-desc">각 문항에 대해 가장 적절한 응답을 선택해 주세요. <span class="required">*</span> 필수</p>
+        <div id="likertQuestions"></div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">향후 유사 과정 개설 희망 내용</h2>
+        <p class="section-desc">희망하는 내용을 모두 선택해 주세요. 복수 응답 가능</p>
+        <div class="check-list">
+          <label><input type="checkbox" name="향후 개설 희망 내용" value="프롬프트 작성 심화"><span>프롬프트 작성 심화</span></label>
+          <label><input type="checkbox" name="향후 개설 희망 내용" value="교수학습 상호작용 콘텐츠 제작"><span>교수학습 상호작용 콘텐츠(스팟, 게임, 진단도구 등) 제작</span></label>
+          <label><input type="checkbox" name="향후 개설 희망 내용" value="시각화 학습자료 제작"><span>시각화(이미지, 동영상 등) 학습자료 제작</span></label>
+        </div>
+        <div class="field" style="margin-top: 12px;">
+          <label for="otherCourse">기타 희망 과정</label>
+          <input id="otherCourse" name="기타 희망 과정" type="text" placeholder="희망하는 과정을 자유롭게 작성해 주세요." />
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">기타 의견</h2>
+        <div class="field question">
+          <label class="q-title" for="goodPoint">1. 이번 교육에서 가장 유익했던 내용은 무엇입니까?</label>
+          <textarea id="goodPoint" name="이번 교육에서 가장 유익했던 내용" placeholder="자유롭게 작성해 주세요."></textarea>
+        </div>
+        <div class="field question">
+          <label class="q-title" for="improvePoint">2. 교육 운영상 개선이 필요하다고 생각되는 사항은 무엇입니까?</label>
+          <textarea id="improvePoint" name="교육 운영상 개선 필요 사항" placeholder="자유롭게 작성해 주세요."></textarea>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button id="submitBtn" type="submit">설문 제출하기</button>
+        <div id="notice" class="notice" aria-live="polite"></div>
+        <p class="small">제출 버튼을 누르면 응답이 교육 운영 개선을 위한 자료로 저장됩니다.</p>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3bW-2fJ9dRtDZI8FnBfmgUi9Cm0pFKxoEzngw9lqSPh3mJYQSL-6ND8cMeUZO8PTI/exec";
+
+    const questions = [
+      "교육내용은 본인의 업무와 관련성이 높았다",
+      "교육내용 및 진행방식은 전반적으로 이해하기 쉬웠다",
+      "실습 중심의 교육 운영은 학습에 도움이 되었다",
+      "AI를 활용한 웹 페이지형 교재 제작 방법을 이해하는 데 도움이 되었다",
+      "교육 시간 및 분량은 적절하였다",
+      "본 교육에 전반적으로 만족한다"
+    ];
+
+    const labels = ["① 매우 불만족", "② 불만족", "③ 보통", "④ 만족", "⑤ 매우 만족"];
+    const values = ["1 매우 불만족", "2 불만족", "3 보통", "4 만족", "5 매우 만족"];
+    const likertWrap = document.getElementById("likertQuestions");
+
+    questions.forEach((question, index) => {
+      const q = document.createElement("div");
+      q.className = "question";
+      q.innerHTML = `
+        <p class="q-title">${index + 1}. ${question} <span class="required">*</span></p>
+        <div class="scale" role="radiogroup" aria-label="${question}">
+          ${labels.map((label, i) => `
+            <label>
+              <input type="radio" name="${index + 1}. ${question}" value="${values[i]}" ${i === 0 ? "required" : ""}>
+              <span>${label}</span>
+            </label>
+          `).join("")}
+        </div>
+      `;
+      likertWrap.appendChild(q);
+    });
+
+    const form = document.getElementById("surveyForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const notice = document.getElementById("notice");
+
+    function showNotice(type, message) {
+      notice.className = `notice ${type}`;
+      notice.textContent = message;
+    }
+
+    function getFormData() {
+      const data = new FormData(form);
+      const result = { 제출일시: new Date().toLocaleString("ko-KR") };
+
+      for (const [key, value] of data.entries()) {
+        result[key] = result[key] ? `${result[key]}, ${value}` : value;
+      }
+
+      const checkedValues = [...form.querySelectorAll('input[name="향후 개설 희망 내용"]:checked')].map(item => item.value);
+      result["향후 개설 희망 내용"] = checkedValues.join(", ");
+
+      return result;
+    }
+
+    function downloadCSV(data) {
+      const headers = Object.keys(data);
+      const values = Object.values(data).map(value => `"${String(value || "").replaceAll('"', '""')}"`);
+      const csv = `${headers.join(",")}\n${values.join(",")}`;
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `교육만족도_설문응답_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!form.reportValidity()) {
+        showNotice("error", "필수 문항을 모두 선택해 주세요.");
+        return;
+      }
+
+      const payload = getFormData();
+      submitBtn.disabled = true;
+      submitBtn.textContent = "제출 중...";
+
+      try {
+        if (!SCRIPT_URL) {
+          downloadCSV(payload);
+          showNotice("success", "현재 Google Sheets 연결 URL이 없어 CSV 파일로 응답을 저장했습니다. SCRIPT_URL을 연결하면 자동 집계됩니다.");
+          form.reset();
+          return;
+        }
+
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        showNotice("success", "설문이 정상적으로 제출되었습니다. 참여해 주셔서 감사합니다.");
+        form.reset();
+      } catch (error) {
+        console.error(error);
+        downloadCSV(payload);
+        showNotice("error", "온라인 제출에 실패하여 CSV 파일로 응답을 저장했습니다.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "설문 제출하기";
+      }
+    });
+  </script>
+</body>
+</html>
